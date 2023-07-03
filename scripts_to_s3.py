@@ -25,10 +25,10 @@ for file in files:
     status, file_path = file.split("\t")
     if file_path.startswith("scripts/"):
         if status == "A" or status == "M":
-            s3_key = s3_folder + file_path
+            s3_key = file_path
             s3_client.upload_file(file_path, s3_bucket, s3_key)
             print(f"Uploaded file to S3: {s3_key}")
         elif status == "D":
-            s3_key = s3_folder + file_path
+            s3_key = file_path
             s3_client.delete_object(Bucket=s3_bucket, Key=s3_key)
             print(f"Deleted file from S3: {s3_key}")
