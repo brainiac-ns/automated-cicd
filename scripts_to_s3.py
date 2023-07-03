@@ -75,10 +75,10 @@ class S3FileManager:
                     self.timezone
                 ) > s3_modified_time.astimezone(self.timezone):
                     logging.info(
-                        local_modified_time,
-                        s3_modified_time,
-                        local_modified_time.astimezone(self.timezone),
-                        s3_modified_time.astimezone(self.timezone),
+                        f"""{local_modified_time},
+                        {s3_modified_time},
+                        {local_modified_time.astimezone(self.timezone)},
+                        {s3_modified_time.astimezone(self.timezone)}""",
                     )
                     if self._check_if_function_is_runnable(local_file):
                         files_to_upload.add(local_file)
