@@ -1,35 +1,41 @@
-import subprocess
+import os
 
 import boto3
 
-s3_bucket = "mlops-task"
-s3_folder = "scripts/"
-s3_client = boto3.client("s3")
 
-# Run 'git log' command to get the list of changed files in the latest commit
-log_output = (
-    subprocess.check_output(["git", "log", "--name-status", "-1", "HEAD"])
-    .decode()
-    .strip()
-)
+def delete_from_s3(bucket_name, folder):
+    s3_client = boto3.client(
+        "s3",
+        aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+        aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+    )
+    response = s3_client.list_objects_v2(Bucket=bucket_name, Prefix=folder)
 
-files = []
-start_index = log_output.index("\n") + 1
+    if "Contents" in response:
+        s3_files = [
+            obj["Key"] for obj in response["Contents"] if obj["Key"].endswith(".py")
+        ]
+        local_files = []
 
-for line in log_output[start_index:].split("\n"):
-    if line.startswith("A\t") or line.startswith("M\t") or line.startswith("D\t"):
-        status, file_path = line.split("\t")
-        files.append(line)
+        for file_name in os.listdir(folder):
+            if file_name.endswith(".py"):
+                local_files.append(os.path.join(folder, file_name))
 
-for file in files:
-    status, file_path = file.split("\t")
-    if file_path.startswith("scripts/"):
-        print(status, file_path)
-        if status == "A" or status == "M":
-            s3_key = file_path
-            s3_client.upload_file(file_path, s3_bucket, s3_key)
-            # print(f"Uploaded file to S3: {s3_key}")
-        elif status == "D":
-            s3_key = file_path
-            s3_client.delete_object(Bucket=s3_bucket, Key=s3_key)
-            # print(f"Deleted file from S3: {s3_key}")
+        files_to_delete = set(s3_files) - set(local_files)
+
+        for file in set(local_files):
+            path = os.path.join(folder, file)
+            s3_client.upload_file(path, bucket_name, path)
+            print(f"Uploaded file to S3: {path}")
+
+        for file in files_to_delete:
+            path = os.path.join(folder, file)
+            s3_client.delete_object(Bucket=bucket_name, Key=path)
+            print(f"Deleted file from S3: {path}")
+
+
+if __name__ == "__main__":
+    bucket_name = "mlops-task"
+    folder = "scripts"
+
+    delete_from_s3(bucket_name, folder)
