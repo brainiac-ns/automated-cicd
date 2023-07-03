@@ -77,7 +77,7 @@ class S3FileManager:
                     logging.info(
                         f"""{local_modified_time},
                         {s3_modified_time},
-                        {local_modified_time.astimezone(self.timezone)},
+                        {local_modified_time.astimezone(self.timezone)}, 
                         {s3_modified_time.astimezone(self.timezone)}""",
                     )
                     if self._check_if_function_is_runnable(local_file):
