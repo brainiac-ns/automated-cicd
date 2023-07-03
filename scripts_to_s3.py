@@ -1,4 +1,5 @@
 import datetime
+import importlib.util
 import logging
 import os
 from typing import Dict, Set
@@ -44,8 +45,8 @@ class S3FileManager:
         files_to_delete = s3_files.keys() - local_files.keys()
         logging.info(f"Files to delete: {files_to_delete}")
 
-        self._upload_files(local_files)
-        self._delete_files(files_to_delete)
+        # self._upload_files(local_files)
+        # self._delete_files(files_to_delete)
 
     def _get_files_to_upload(
         self,
@@ -66,7 +67,8 @@ class S3FileManager:
 
         for local_file, local_modified_time in local_files.items():
             if local_file not in s3_files.keys():
-                files_to_upload.add(local_file)
+                if self._check_if_function_is_runnable(local_file):
+                    files_to_upload.add(local_file)
             else:
                 s3_modified_time = s3_files[local_file]
                 if local_modified_time.astimezone(
@@ -78,7 +80,8 @@ class S3FileManager:
                         local_modified_time.astimezone(self.timezone),
                         s3_modified_time.astimezone(self.timezone),
                     )
-                    files_to_upload.add(local_file)
+                    if self._check_if_function_is_runnable(local_file):
+                        files_to_upload.add(local_file)
 
         return files_to_upload
 
@@ -143,9 +146,28 @@ class S3FileManager:
             self.s3_client.delete_object(Bucket=self.bucket_name, Key=file)
             logging.info(f"Deleted file from S3: {file}")
 
+    def _check_if_function_is_runnable(self, script_path: str) -> bool:
+        """
+        Checks if the function can be run.
+
+        Args:
+            script_path: The path to the script.
+
+        Returns:
+            True if the function can be run, False otherwise.
+        """
+        try:
+            spec = importlib.util.spec_from_file_location("script_module", script_path)
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            module.run(1)
+            return True
+        except Exception as e:
+            logging.exception(e)
+            return False
+
 
 # TODO: Napisati testove unit i integracione
-# TODO: Dodati automatski pytest u github actions
 if __name__ == "__main__":
     bucket_name = "mlops-task"
     folder = "scripts"
