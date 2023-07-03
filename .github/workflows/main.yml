@@ -1,4 +1,4 @@
-name: Upload Scripts to S3
+name: Manage S3 Changes
 
 on:
   push:
@@ -6,33 +6,23 @@ on:
       - main
 
 jobs:
-  upload_scripts:
+  manage_s3_changes:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
-    
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
       with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1
-    
-    - name: List files in scripts folder
-      id: list_files
-      run: |
-        find scripts -type f > files.txt
-    
-    - name: Set files output
-      id: set_files_output
-      run: |
-        echo "::set-output name=files::$(cat files.txt)"
-    
-    - name: Upload scripts to S3
-      run: |
-        IFS=$'\n' read -ra files <<< "${{ steps.set_files_output.outputs.files }}"
-        for file in "${files[@]}"; do
-          aws s3 cp $file s3://mlops-task/scripts/$(basename $file)
-        done
+        python-version: 3.x
+
+    - name: Install dependencies
+      run: pip install -r requirements.txt
+
+    - name: Run manage_s3_changes
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      run: python scripts_to_s3.py
