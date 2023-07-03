@@ -72,7 +72,7 @@ class S3FileManager:
                 if local_modified_time.astimezone(
                     self.timezone
                 ) > s3_modified_time.astimezone(self.timezone):
-                    print(
+                    logging.info(
                         local_modified_time,
                         s3_modified_time,
                         local_modified_time.astimezone(self.timezone),
