@@ -24,14 +24,12 @@ def delete_from_s3(bucket_name, folder):
         files_to_delete = set(s3_files) - set(local_files)
 
         for file in set(local_files):
-            path = os.path.join(folder, file)
-            s3_client.upload_file(path, bucket_name, path)
-            print(f"Uploaded file to S3: {path}")
+            s3_client.upload_file(file, bucket_name, file)
+            print(f"Uploaded file to S3: {file}")
 
         for file in files_to_delete:
-            path = os.path.join(folder, file)
-            s3_client.delete_object(Bucket=bucket_name, Key=path)
-            print(f"Deleted file from S3: {path}")
+            s3_client.delete_object(Bucket=bucket_name, Key=file)
+            print(f"Deleted file from S3: {file}")
 
 
 if __name__ == "__main__":
