@@ -17,21 +17,18 @@ files = []
 start_index = log_output.index("\n") + 1
 
 for line in log_output[start_index:].split("\n"):
-    if line.startswith("A") or line.startswith("M") or line.startswith("D"):
+    if line.startswith("A\t") or line.startswith("M\t") or line.startswith("D\t"):
         status, file_path = line.split("\t")
-        files.append(file_path)
+        files.append(line)
 
-for file_path in files:
+for file in files:
+    status, file_path = file.split("\t")
     if file_path.startswith("scripts/"):
-        status = file_path[0]
-
         if status == "A" or status == "M":
-            # Upload file to S3
             s3_key = s3_folder + file_path
             s3_client.upload_file(file_path, s3_bucket, s3_key)
             print(f"Uploaded file to S3: {s3_key}")
         elif status == "D":
-            # Delete file from S3
             s3_key = s3_folder + file_path
             s3_client.delete_object(Bucket=s3_bucket, Key=s3_key)
             print(f"Deleted file from S3: {s3_key}")
