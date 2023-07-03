@@ -23,11 +23,16 @@ jobs:
     - name: List files in scripts folder
       id: list_files
       run: |
-        find scripts -type f -exec echo "::set-output name=files::{};" \;
+        find scripts -type f > files.txt
+    
+    - name: Set files output
+      id: set_files_output
+      run: |
+        echo "::set-output name=files::$(cat files.txt)"
     
     - name: Upload scripts to S3
       run: |
-        IFS=';' read -ra files <<< "${{ steps.list_files.outputs.files }}"
+        IFS=$'\n' read -ra files <<< "${{ steps.set_files_output.outputs.files }}"
         for file in "${files[@]}"; do
           aws s3 cp $file s3://mlops-task/scripts/$(basename $file)
         done
