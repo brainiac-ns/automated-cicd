@@ -72,6 +72,12 @@ class S3FileManager:
                 if local_modified_time.astimezone(
                     self.timezone
                 ) > s3_modified_time.astimezone(self.timezone):
+                    print(
+                        local_modified_time,
+                        s3_modified_time,
+                        local_modified_time.astimezone(self.timezone),
+                        s3_modified_time.astimezone(self.timezone),
+                    )
                     files_to_upload.add(local_file)
 
         return files_to_upload
