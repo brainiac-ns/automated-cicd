@@ -2,7 +2,6 @@ import datetime
 import importlib.util
 import logging
 import os
-import subprocess
 from typing import Dict, Set
 
 import boto3
@@ -72,22 +71,9 @@ class S3FileManager:
                     files_to_upload.add(local_file)
             else:
                 s3_modified_time = s3_files[local_file]
-                command = ["git", "log", "-1", "--pretty=format:%ci", local_file]
-                result = subprocess.run(command, capture_output=True, text=True)
-                timestamp_str = result.stdout.strip()
-                timestamp = datetime.datetime.strptime(
-                    timestamp_str, "%Y-%m-%d %H:%M:%S %z"
-                )
-                if timestamp.astimezone(self.timezone) > s3_modified_time.astimezone(
+                if local_modified_time.astimezone(
                     self.timezone
-                ):
-                    logging.info(
-                        f"""{timestamp.astimezone(self.timezone)}
-                        {local_modified_time},
-                        {s3_modified_time},
-                        {local_modified_time.astimezone(self.timezone)},
-                        {s3_modified_time.astimezone(self.timezone)}""",
-                    )
+                ) > s3_modified_time.astimezone(self.timezone):
                     if self._check_if_function_is_runnable(local_file):
                         files_to_upload.add(local_file)
 
