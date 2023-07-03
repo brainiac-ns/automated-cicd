@@ -20,7 +20,7 @@ class S3FileManager:
         """
         self.bucket_name = bucket_name
         self.folder = folder
-        self.utc = pytz.UTC
+        self.timezone = pytz.timezone("America/New_York")
         self.s3_client = boto3.client(
             "s3",
             aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
@@ -48,7 +48,9 @@ class S3FileManager:
         self._delete_files(files_to_delete)
 
     def _get_files_to_upload(
-        self, local_files: str, s3_files: Dict[str, datetime.datetime]
+        self,
+        local_files: Dict[str, datetime.datetime],
+        s3_files: Dict[str, datetime.datetime],
     ) -> Set[str]:
         """
         Find files that need to be uploaded to S3.
@@ -67,9 +69,9 @@ class S3FileManager:
                 files_to_upload.add(local_file)
             else:
                 s3_modified_time = s3_files[local_file]
-                if local_modified_time.replace(
-                    tzinfo=self.utc
-                ) > s3_modified_time.replace(tzinfo=self.utc):
+                if local_modified_time.astimezone(
+                    self.timezone
+                ) > s3_modified_time.astimezone(self.timezone):
                     files_to_upload.add(local_file)
 
         return files_to_upload
