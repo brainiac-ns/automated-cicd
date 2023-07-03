@@ -17,12 +17,9 @@ files = []
 start_index = log_output.index("\n") + 1
 
 for line in log_output[start_index:].split("\n"):
-    if line.startswith(" "):
-        # Skip lines that don't represent changed files
-        continue
-    print(line)
-    status, file_path = line.split("\t")
-    files.append(file_path)
+    if line.startswith("A") or line.startswith("M") or line.startswith("D"):
+        status, file_path = line.split("\t")
+        files.append(file_path)
 
 for file_path in files:
     if file_path.startswith("scripts/"):
