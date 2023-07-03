@@ -35,17 +35,10 @@ class S3FileManager:
         s3_files = self._get_s3_files()
 
         local_files = self._get_local_files()
-        files_to_upload = []
 
-        for local_file, local_modified_time in local_files.items():
-            if local_file not in s3_files.keys():
-                files_to_upload.append(local_file)
-            else:
-                s3_modified_time = s3_files[local_file]
-                if local_modified_time.replace(
-                    tzinfo=self.utc
-                ) > s3_modified_time.replace(tzinfo=self.utc):
-                    files_to_upload.append(local_file)
+        files_to_upload = self._get_files_to_upload(
+            local_files=local_files, s3_files=s3_files
+        )
         logging.info(f"Files to upload: {files_to_upload}")
 
         files_to_delete = s3_files.keys() - local_files.keys()
@@ -53,6 +46,33 @@ class S3FileManager:
 
         self._upload_files(local_files)
         self._delete_files(files_to_delete)
+
+    def _get_files_to_upload(
+        self, local_files: str, s3_files: Dict[str, datetime.datetime]
+    ) -> Set[str]:
+        """
+        Find files that need to be uploaded to S3.
+
+        Args:
+            local_files: A set of tuples containing file paths and last modified time.
+            s3_files: A set of tuples containing file keys and last modified time.
+
+        Returns:
+            A set of file paths that need to be uploaded to S3.
+        """
+        files_to_upload = set()
+
+        for local_file, local_modified_time in local_files.items():
+            if local_file not in s3_files.keys():
+                files_to_upload.add(local_file)
+            else:
+                s3_modified_time = s3_files[local_file]
+                if local_modified_time.replace(
+                    tzinfo=self.utc
+                ) > s3_modified_time.replace(tzinfo=self.utc):
+                    files_to_upload.add(local_file)
+
+        return files_to_upload
 
     def _get_s3_files(self) -> Dict[str, datetime.datetime]:
         """
@@ -117,6 +137,7 @@ class S3FileManager:
 
 
 # TODO: Napisati testove unit i integracione
+# TODO: Dodati automatski pytest u github actions
 if __name__ == "__main__":
     bucket_name = "mlops-task"
     folder = "scripts"
