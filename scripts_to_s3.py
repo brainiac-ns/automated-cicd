@@ -20,6 +20,7 @@ for line in log_output[start_index:].split("\n"):
     if line.startswith(" "):
         # Skip lines that don't represent changed files
         continue
+    print(line)
     status, file_path = line.split("\t")
     files.append(file_path)
 
