@@ -3,7 +3,8 @@ import os
 import boto3
 
 
-def delete_from_s3(bucket_name, folder):
+# TODO: Razbiti na klasu i funkcije i napisati testove unit i integracione
+def manage_files(bucket_name, folder):
     s3_client = boto3.client(
         "s3",
         aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
@@ -24,6 +25,7 @@ def delete_from_s3(bucket_name, folder):
         files_to_delete = set(s3_files) - set(local_files)
 
         for file in set(local_files):
+            # TODO: Ovo samo za fajlove koji su promenjeni
             s3_client.upload_file(file, bucket_name, file)
             print(f"Uploaded file to S3: {file}")
 
@@ -36,4 +38,4 @@ if __name__ == "__main__":
     bucket_name = "mlops-task"
     folder = "scripts"
 
-    delete_from_s3(bucket_name, folder)
+    manage_files(bucket_name, folder)
