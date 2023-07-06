@@ -45,8 +45,8 @@ class S3FileManager:
         files_to_delete = s3_files.keys() - local_files.keys()
         logging.info(f"Files to delete: {files_to_delete}")
 
-        # self._upload_files(local_files)
-        # self._delete_files(files_to_delete)
+        self._upload_files(local_files)
+        self._delete_files(files_to_delete)
 
     def _get_files_to_upload(
         self,
@@ -161,7 +161,6 @@ class S3FileManager:
             return False
 
 
-# TODO: Napisati testove unit i integracione
 if __name__ == "__main__":
     bucket_name = "mlops-task"
     folder = "scripts"
